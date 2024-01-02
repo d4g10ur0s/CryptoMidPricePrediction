@@ -1,5 +1,5 @@
 # Custom Modules
-from auth.binance_auth import *
+from binance_auth import *
 # Binance Modules
 from binance.enums import *
 from binance.client import Client
