@@ -1,5 +1,5 @@
 # Custom Modules
-from binance_auth import *
+from auth.binance_auth import *
 # Binance Modules
 from binance.enums import *
 from binance.client import Client
@@ -10,37 +10,38 @@ import time
 import datetime as dtime
 # Data Analysis Modules
 import pandas as pd
+
+def categorize_move(trend):
+    if trend < -0.001:
+        return '0001'
+    elif -0.001 <= trend <= 0:
+        return '0010'
+    elif 0 < trend < 0.001:
+        return '0100'
+    else:
+        return '1000'
+
 # preprocess dataset for coin
 def preprocessDataset(dsName ,pdsName):
     df = pd.read_csv(dsName)
     df = df.drop(columns=["Open time","Close time",
                           "Quote asset volume","Number of trades","Taker buy base asset volume",
                           "Taker buy quote asset volume","Ignore"])
+    # manual features
     # mean price
     df['Mean price']=(df['High price']+df['Low price'])/2
-    # manual features
-    # volume percentage
-    df['Volume percentage'] = (df['Volume'].shift(periods=1) / df['Volume'] - 1)
-    # time trend
-    df['Time trend']=df['Close price']-df['Open price']
-    # mean diff
-    df["Trends"]=df['Mean price'].diff()
-    df.loc[0,'Trends'] = df.loc[0,'Mean price']
-    df["Trends"]=df["Trends"]/2
-    # trends percentage
-    df['Trends percentage'] = (df['Close price'] / df['Open price']) - 1
-    # Save the processed file
+    df["Trends"]= df['Mean price'] - df['Mean price'].shift(-5)
+    df.loc[0:5,'Trends'] = df.loc[0:5,'Mean price']
     # normalize values
-    df['Volume']=df['Volume']/df['Volume'].max()
-    df['High price']=df['High price']/df['High price'].max()
-    df['Low price']=df['Low price']/df['Low price'].max()
-    df['Close price']=df['Close price']/df['Close price'].max()
-    df['Open price']=df['Open price']/df['Open price'].max()
-    df['Volume percentage']=df['Volume percentage']/df['Volume percentage'].max()
-    df['Time trend']=df['Time trend']/df['Time trend'].abs().max()
-    df['Trends']=df['Trends']/df['Trends'].max()
-    df = df.dropna()
+    df['Volume']=df['Volume']/ df['Volume'].max()
+    df['High price']=df['High price']/ df['High price'].max()
+    df['Low price']=df['Low price']/ df['Low price'].max()
+    df['Close price']=df['Close price'] / df['Close price'].max()
+    df['Open price']=df['Open price'] / df['Open price'].max()
+    df['Trends']=df['Trends']/df['Trends'].abs().max() # it's a percentage
 
+    df = df.dropna()
+    # Save the processed file
     df.to_csv(pdsName,index=False)
 # create dataset for coin
 def createDataset(pathName , symbol):
