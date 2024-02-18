@@ -1,6 +1,26 @@
 from binance.client import Client
 from auth.binance_auth import *
 from binance.exceptions import BinanceAPIException
+from binance.enums import *
+
+def cancelOrder(client) :
+    try :
+        orders = client.get_open_margin_orders(symbol='XRPUSDT')
+        # Filter open orders to include only sell orders
+        open_orders = [order for order in open_orders if order['side'] == 'BUY']
+        open_orders.sort(key=lambda x: x['time'])
+        if open_orders:
+            # Extract the oldest order
+            oldest_order_id = open_orders[0]['orderId']
+            # Cancel the oldest order
+            cancel_response = client.cancel_order(symbol=symbol, orderId=oldest_order_id)
+            print(f"Oldest order (ID: {oldest_order_id}) has been canceled.")
+        else:
+            print("No open orders found to cancel.")
+    except BinanceAPIException as e:
+        # Extract and print only the error code
+        error_code = e.code
+        print(f"An error occurred: {error_code}")
 
 def getInfo():
     # Initialize Binance client
@@ -18,24 +38,24 @@ def bTrade(midPrice) :
     # Initialize Binance client
     client = load_binance_creds('auth/auth.yml')
     # Define trade parameters
-    symbol = 'XRPUSDT'  # Trading pair
-    side = 'BUY'         # Buy or sell
-    quantity = 10        # Quantity of XRP to buy
-    price = midPrice         # None for market order, specify price for limit order
-    leverage = 3         # Leverage level (e.g., 3x leverage)
+    symbol = 'XRPUSDT'                  # Trading pair
+    side = 'BUY'                        # Buy or sell
+    quantity = 20                       # Quantity of XRP to buy
+    price = round(midPrice , 4)         # None for market order, specify price for limit order
+    leverage = 3                        # Leverage level (e.g., 3x leverage)
     # Place margin trade
     try :
         order = client.create_margin_order(
             symbol=symbol,
-            side=side,
-            type='MARKET',  # Market order type
+            side=SIDE_BUY,
+            type=ORDER_TYPE_LIMIT,
+            timeInForce=TIME_IN_FORCE_GTC,
             quantity=quantity,
-            price=price,
-            newOrderRespType='FULL',  # Receive full order response
-            leverage=leverage  # Specify leverage level
+            price=price
         )
+        print("Type of order : " + str(order['side']) + "\nValue of order : " + str(order['price']))
     except BinanceAPIException as e:
+        print(int(e.code))
+        if e.code == -2010 :
+            cancelOrder(client)
         print(f"An error occurred: {e}")
-    finally :
-        # Print order response
-        print(order)

@@ -1,4 +1,5 @@
 import os
+import requests
 import time
 import datetime as dt
 import pandas as pd
@@ -17,6 +18,10 @@ import matplotlib.pyplot as plt
 import datasetCreation as dC
 import bTrade as bT
 import sTrade as sT
+
+def get_public_ip():
+    response = requests.get('https://api.ipify.org')
+    return response.text
 
 # Global variables
 symbol = 'XRPUSDT'
@@ -84,7 +89,7 @@ def main():
             mse = 5e-6
             print('Cannot compute mse')
         # predict or train
-        if False and (os.path.exists(os.getcwd()+modelName) and mse<5e-5):
+        if (os.path.exists(os.getcwd()+modelName) and mse<5e-5):
             # make prediction
             df = (a.loc[int(a.shape[0] * 0.95):, :]).reset_index(drop=True)
             X_test = np.array(df.iloc[len(df)-timeSeriesLength:], dtype=np.float32)
@@ -100,19 +105,19 @@ def main():
             mpred = predictions[0]
             if float(currentValue) > mpred[0]  :
                 print('currentValue : '+str(currentValue) + ' > lastPrediction : ' + str(lastPrediction[len(lastPrediction)-1].loc[0,'Mean price']))
-                for i in range(5):
-                    try :
-                        sT.sTrade(mpred[0]-mpred[0]*mpred[1])
-                    except :
-                        print("Could not make the order")
+                #for i in range(5):
+                try :
+                    sT.sTrade(mpred[0]+mpred[0]*mpred[1])
+                except :
+                    print("Could not make the order")
             else:
                 print('currentValue : '+str(currentValue) + ' < lastPrediction : ' + str(lastPrediction[len(lastPrediction)-1].loc[0,'Mean price']))
-                for i in range(5):
+                for i in range(2):
                     try :
-                        bT.bTrade(mpred[0]+mpred[0]*mpred[1])
+                        bT.bTrade(mpred[0]-mpred[0]*mpred[1])
                     except :
                         print("Could not make the order")
-        elif True or timeThreshold==0:
+        elif timeThreshold==0:
             # make X and y
             df = (a.loc[int(a.shape[0] * 0.75):, :]).reset_index(drop=True)
             df_1 = df.loc[:, ['Mean price', 'Trends']]
