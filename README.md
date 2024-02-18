@@ -1,3 +1,5 @@
+# BE CAREFUL ! THIS SCRIPT MAKES AUTOMATED ORDERS , PLEASE REMOVE CODE CONCERNING THIS FUNCTIONALITY
+
 - This set of scripts takes data from binance for XRP/USDT pair .
 - You must provide binance authentication keys , check the binance_auth.py module .
 - You may change the pair .
