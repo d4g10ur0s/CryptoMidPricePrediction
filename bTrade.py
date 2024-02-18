@@ -7,7 +7,7 @@ def cancelOrder(client) :
     try :
         orders = client.get_open_margin_orders(symbol='XRPUSDT')
         # Filter open orders to include only sell orders
-        open_orders = [order for order in open_orders if order['side'] == 'BUY']
+        open_orders = [order for order in orders if order['side'] == 'BUY']
         open_orders.sort(key=lambda x: x['time'])
         if open_orders:
             # Extract the oldest order
@@ -55,7 +55,6 @@ def bTrade(midPrice) :
         )
         print("Type of order : " + str(order['side']) + "\nValue of order : " + str(order['price']))
     except BinanceAPIException as e:
-        print(int(e.code))
         if e.code == -2010 :
             cancelOrder(client)
         print(f"An error occurred: {e}")
