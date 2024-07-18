@@ -29,83 +29,45 @@ def categorize_move(trend):
 def preprocessDataset(dsName ,pdsName):
     df = pd.read_csv(dsName)
     # Calculate correlation matrix
-    df = df.drop(columns=["Open time","Close time","Volume",'Taker buy base asset volume','Taker buy quote asset volume',
-                          "Quote asset volume","Number of trades","Ignore",])
+    #df = df.drop(columns=["Open time","Close time","Volume",'Taker buy base asset volume','Taker buy quote asset volume',
+    #                      "Quote asset volume","Number of trades","Ignore",])
+    df = df.drop(columns=["Open time","Close time","Ignore",])
     # manual features
     # mean price
     df['Mean price']=(df['High price']+df['Low price'])/2
-    # Mean averages seem to help
-    df['MA_5'] = df['Mean price'].rolling(window=5).mean()
-    df['MA_30'] = df['Mean price'].rolling(window=30).mean()
-    df['MA_60'] = df['Mean price'].rolling(window=60).mean()
-    #df['MA_9'] = df['Mean price'].rolling(window=9).mean()
-    df['Log Earnings'] = np.log(df['Mean price']) - np.log(df['Mean price'].shift(-10))
-    df['Percentage Earnings'] = (df['Close price'] - df['Open price'].shift(-10))/df['Open price'].shift(-10)
-    df['Mean Price Earnings'] = (df['Mean price'] - df['Mean price'].shift(-10))/df['Mean price'].shift(-10)
-    #df['Next price2'] = df['Mean price'].shift(-2)
-    #df['Next price3'] = df['Mean price'].shift(-3)
+    #df['Mid time price']=(df['Close price']-df['Open price'])/2
+    df["VAPT"] = (df['Taker buy base asset volume']-df['Taker buy quote asset volume'])/(2*df["Number of trades"])
+    df["VAPV"] = (df['Taker buy base asset volume']-df['Taker buy quote asset volume'])/(2*df["Volume"])
+    df["MA_10"] = df['Mean price'].rolling(window=10).mean()
+    df["MA_30"] = df['Mean price'].rolling(window=30).mean()
+    df["MA_60"] = df['Mean price'].rolling(window=60).mean()
+    df=df.drop(columns=["Volume",'Taker buy base asset volume','Taker buy quote asset volume',"Quote asset volume","Number of trades",])
+    '''
+        Show some Statistics
+    '''
     df = df.dropna()
-
-    # let's see with fourrier
-    '''
-    for lag in range(5,20):
-        # Compute autocorrelation matrix for all pairs of variables up to the specified lag
-        for j in range(10) :
-            interval_data = np.fft.fftn(df.iloc[j*lag : j*lag + lag])
-            print(str(interval_data))
-            dft_result = np.fft.fftn(interval_data)
-            frequencies = np.fft.fftfreq(len(interval_data))
-            magnitude_spectrum = np.abs(dft_result)
-            print(str(frequencies))
-            plt.figure(figsize=(10, 6))
-            plt.plot(frequencies, magnitude_spectrum)
-            plt.title(f'Magnitude Spectrum - {lag}')
-            plt.xlabel('Frequency')
-            plt.ylabel('Magnitude')
-            plt.grid(True)
-            plt.show()
-            # something else
-            print(str(np.log(np.abs(np.fft.fftshift(dft_result))**2)))
-            plt.imshow(np.log(np.abs(np.fft.fftshift(dft_result))**2))
-            plt.show()
-
-    '''
-    '''
-    correlation_matrix = df.corr()
-    # Create a heatmap
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
-    plt.title('Correlation Heatmap')
-    plt.show()
-
-    # Calculate covariance matrix
-    covariance_matrix = df.cov()
-    # Create a heatmap
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(covariance_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
-    plt.title('Covariance Heatmap')
-    plt.show()
-
-        # Plot autocorrelation matrix as a heatmap
-        plt.figure(figsize=(10, 6))
-        sns.heatmap(autocorr_matrix, cmap='coolwarm', annot=True, fmt=".2f", cbar=True)
-        plt.title(f'Autocorrelation Matrix at Lag {lag}')
-        plt.xlabel('Variables')
-        plt.ylabel('Variables')
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-        plt.show()
-        '''
-
     dfKeys = df.keys()
+    # normalize the values
     for i in dfKeys :
-        if i == 'Mean price' or i == 'Trends':
-            pass
-        else:
-            df[i] = df[i]/df[i].abs().max()
-
+        df[i] = df[i]/df[i].abs().max()
     df = df.dropna()
-
+    # Calculate covariance matrix
+    def calcLagCorrelation(df) :
+        for lag in range(10,121):
+            print("Current lag : " + str(lag))
+            temp = df
+            temp["next"] = df["Mean price"].shift(-5)
+            temp = temp.dropna()
+            correlation = temp[:1000].rolling(window=lag).mean().corr()
+            # Create a heatmap
+            # Plot the autocorrelation function
+            plt.figure(figsize=(8, 6))
+            sns.heatmap(correlation, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
+            plt.title('Autocorrelation Heatmap')
+            plt.savefig("Autocorrelation_"+str(lag)+".png")
+            plt.clf()
+    calcLagCorrelation(df)
+    #exit(0)
     # Save the processed file
     df.to_csv(pdsName,index=False)
 # create dataset for coin

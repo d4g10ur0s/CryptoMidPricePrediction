@@ -34,7 +34,7 @@ symbol = 'XRPUSDT'
 datasetName = '\\dataset.csv'
 processedDatasetName = '\\processedDataset.csv'
 modelName = '\\MoMoney.keras'
-timeSeriesLength = 30
+timeSeriesLength = 45
 
 def huber_loss(y_true, y_pred, delta=1.0):
     error = y_true - y_pred
@@ -55,13 +55,13 @@ def build_model(input_shape):
     model = Sequential()
     model.add(Input(shape=input_shape))
     model.add(LSTM(input_shape[0], activation='tanh',
-                   input_shape=input_shape, return_sequences=True,return_state=False,recurrent_activation='sigmoid',go_backwards=False
+                   return_sequences=True,return_state=False,recurrent_activation='sigmoid',go_backwards=False
                    ))
     model.add(Bidirectional(LSTM(input_shape[1]**2, activation='tanh',
-                   input_shape=input_shape, return_sequences=True, return_state=False,recurrent_activation='sigmoid',go_backwards=False
+                   return_sequences=True, return_state=False,recurrent_activation='sigmoid',go_backwards=False
                    )))
     model.add(LSTM(input_shape[0], activation='tanh',
-                   input_shape=input_shape, return_sequences=False,return_state=False,recurrent_activation='sigmoid',go_backwards=False
+                   return_sequences=False,return_state=False,recurrent_activation='sigmoid',go_backwards=False
                    ))
     model.add(Dense(1, activation='linear'))
     return model
@@ -71,9 +71,9 @@ def train_model(X_train, y_train, X_val, y_val, epochs, batch_size, learning_rat
     model = build_model(input_shape)
     # Compile the model
     optimizer = SGD(learning_rate=learning_rate, momentum=momentum)
-    #optimizer = RMSprop(learning_rate=learning_rate)
-    #model.compile(optimizer=optimizer, loss=root_mean_squared_error)
+    #optimizer = RMSprop(learning_rate=learning_rate, momentum=momentum)
     model.compile(optimizer=optimizer, loss='mean_squared_error')
+    #model.compile(optimizer=optimizer, loss='mean_squared_error')
     # Define early stopping
     early_stopping = EarlyStopping(monitor='loss', min_delta=1e-5, patience=2, verbose=1)
     # Train the model
@@ -97,7 +97,8 @@ def demoMain():
     mse = 0
     newData = True
     dumb = pd.read_csv(os.getcwd()+datasetName)
-    maxMean = 1#((dumb['High price']+dumb['Low price'])/2).max()
+    maxMean = ((dumb['High price']+dumb['Low price'])/2).max()
+    #input(str("Max Mean : "+str(maxMean)))
     mpred = None
 
     while 1 :
@@ -121,12 +122,12 @@ def demoMain():
             # predictions variable acts like a queue
             mse = mean_absolute_error([lastPrediction[0].loc[0,"Mean price"]*maxMean],my_test)
             #mse = mean_squared_error([lastPrediction[0].loc[0,"Mean price"]],my_test)
-            print('MSE : ' + str(mse))
+            print('MAE : ' + str(mse))
         else:
             mse = 5e-6
             print('Cannot compute mse')
         # predict or train
-        if (os.path.exists(os.getcwd()+modelName) and mse<40e-4):
+        if False and (os.path.exists(os.getcwd()+modelName) and mse<4e-3):
             # make prediction
             if newData :
                 df = (a.loc[int(a.shape[0] * 0.95):, :]).reset_index(drop=True)
@@ -137,6 +138,7 @@ def demoMain():
                 predictions=loaded_model.predict(np.log(np.abs(np.fft.fftshift(np.fft.fftn(X_test)))**2))
                 lastPrediction.append(pd.DataFrame(data=predictions,columns=["Mean price"]))
                 mpred = predictions[0]
+                newData=False
 
             # show current situation
             if len(lastPrediction)>=11:# last prediction is next prediction
@@ -147,35 +149,35 @@ def demoMain():
             if float(currentValue)>maxMean:
                 maxMean=float(currentValue)
             print("Current Difference : " + str(abs(float(currentValue)-mpred[0]*maxMean)))
-            if float(currentValue) > mpred[0] *maxMean :
+            if float(currentValue) >= mpred[0] *maxMean :
                 print('currentValue : '+str(currentValue) + ' > lastPrediction : ' + str(mpred[0] *maxMean))
                 for i in range(3):
                     try :
-                        if (abs(float(currentValue)-mpred[0]*maxMean)>4.5e-3):
-                            bT.bTrade(float(currentValue) - .5e-3)
-                        elif(abs(float(currentValue)-mpred[0]*maxMean)<=4e-3 and abs(float(currentValue)-mpred[0]*maxMean)>=1.5e-3):
-                            sT.sTrade(float(currentValue))
+                        sT.sTrade(float(currentValue)+.2e-3)
+                        bT.bTrade(mpred[0]*maxMean-1e-3)
                     except :
                         print("Could not make the order")
             else:
                 print('currentValue : '+str(currentValue) + ' < lastPrediction : ' + str(mpred[0] *maxMean))
                 for i in range(3):
                     try :
-                        if(abs(float(currentValue)-mpred[0]*maxMean)>3e-3):
-                            sT.sTrade(float(currentValue) + .5e-3)
-                        elif(abs(float(currentValue)-mpred[0]*maxMean)>1e-3):
-                            bT.bTrade(float(currentValue))
+                        # create some safety
+                        if abs(float(currentValue) - mpred[0]*maxMean) > 7e-3 :
+                            sT.sTrade(float(currentValue))
+                        elif (abs(float(currentValue) - mpred[0]*maxMean) < 5e-3) and (abs(float(currentValue) - mpred[0]*maxMean) > .5e-3) :
+                            bT.bTrade(float(currentValue) - .2e-3)
+                            sT.sTrade(mpred[0]*maxMean+1e-3)
                     except :
                         print("Could not make the order")
             # get time again
             #lastTimestamp = dt.datetime.timestamp(dt.datetime.now())
-        elif timeThreshold==0:
+        elif True or timeThreshold==0:
             # get time again
             #lastTimestamp = dt.datetime.timestamp(dt.datetime.now())
             lastPrediction = []
             mse = 5e-6
             # make X and y
-            df = (a.loc[int(a.shape[0] * 0.87):, :]).reset_index(drop=True)
+            df = (a.loc[int(a.shape[0] * 0.8):, :]).reset_index(drop=True)
             print(str(df.keys()))
             df_1 = df.loc[:, ['Mean price']]
             print(np.isnan(df_1).any())
@@ -196,9 +198,9 @@ def demoMain():
             print("NaN values in y_train:", np.isnan(y_train).any())
             # Set hyperparameters
             epochs = 20
-            batch_size = int(timeSeriesLength/5)
-            learning_rate = 0.025
-            momentum = 0.785
+            batch_size = 10
+            learning_rate = 0.01
+            momentum = 0.7
             '''
             learning_rate = float(input('Set learning rate: '))
             momentum = float(input('Set momentum: '))
@@ -211,14 +213,14 @@ def demoMain():
             y_pred = trained_model.predict(X_val)
             print("MSE : " + str(np.mean( (y_val - y_pred)**2 )) )
             # Plot real points as circles
-            plt.plot(range(0,200), y_val[:200, 0], marker='o', label='Real Points')  # Circles for real points
+            plt.plot(range(0,200), y_val[:200, 0] * maxMean, marker='o', label='Real Points')  # Circles for real points
             # Plot predicted points as crosses (x)
-            plt.plot( range(0,200), y_pred[:200, 0], marker='x', label='Predicted Points')  # Crosses for predicted points
+            plt.plot( range(0,200), y_pred[:200, 0] * maxMean, marker='x', label='Predicted Points')  # Crosses for predicted points
             plt.title('Real Points vs Predicted Points')
             plt.xlabel('Dimension 1')
             plt.ylabel('Dimension 2')
             plt.legend()
-            plt.savefig(str(dt.datetime.timestamp(dt.datetime.now()))+".png")
+            plt.savefig(str(learning_rate)+"_"+str(momentum)+".png")
             plt.clf()  # Clear the current figure
             '''
             # Plot training loss
@@ -230,7 +232,7 @@ def demoMain():
             plt.legend()
             plt.show()
             '''
-        time.sleep(2)
+        time.sleep(10)
 
 def main():
     while 1 :
