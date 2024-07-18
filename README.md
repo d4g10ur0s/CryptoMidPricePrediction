@@ -1,24 +1,6 @@
 
 ## 1. General Analysis
 
-## Covariance
-
-**Covariance** is a statistical measure that tells you how much two variables tend to change together. It captures the **directional relationship** between them.
-
-**Properties:**
-
-- **Positive covariance:** If the covariance is positive, the variables tend to move in the same direction. For example, as income increases, spending might also increase.
-- **Negative covariance:** If the covariance is negative, the variables tend to move in opposite directions. For example, as temperature increases, the amount of clothing worn might decrease.
-- **Zero covariance:** If the covariance is zero, it doesn't necessarily mean there's no relationship, but it suggests there's no linear relationship.
-
-**Formula:**
-
-```
-cov(X, Y) = (1/n) * Σ ((X_i - X_mean) * (Y_i - Y_mean))
-```
-
-----
-
 ## Correlation
 
 **Correlation** is a statistical measure that captures the **strength and direction** of the linear relationship between two variables. It's a **normalized** version of covariance, ranging from -1 to 1.
