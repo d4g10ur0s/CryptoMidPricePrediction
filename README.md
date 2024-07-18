@@ -95,7 +95,7 @@ df["VAPV"] = (df['Taker buy base asset volume']-df['Taker buy quote asset volume
 
 ## 2.1 Keras - TensorFlow
 
-#### 2.1.1 Model That is Valid of Working for XRP
+#### 2.1.1 Model that is Valid of Working for XRP
 
 ```
 # create model
@@ -119,6 +119,7 @@ model.add(Dense(1, activation='linear'))
 - 3rd Layer is as 1st .
 - Output Layer has 1 node and linear activation function as activation function .
 - Input and Hidden Layers have LSTM nodes with tanh as activation function and sigmoid as recurrent activation function .
+- The model is trained using SGD as optimizer and MSE as loss function .
 
 **Hyperparameters**
 
