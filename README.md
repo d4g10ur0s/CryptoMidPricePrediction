@@ -128,7 +128,7 @@ model.add(Dense(1, activation='linear'))
 - Batch Size equals 10 .
 - Time Series length equals 30 minutes . 
 
-![image](https://github.com/user-attachments/assets/927fd8e8-521e-46a2-a9de-204e7dcb4a60)
+![image](https://github.com/user-attachments/assets/a68ef87c-ad6f-44a3-823a-6119e796ce9c)
 
 
 **Comments**
