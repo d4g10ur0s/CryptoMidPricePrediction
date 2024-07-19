@@ -152,7 +152,19 @@ model.add(Dense(1, activation='linear'))
 ```
 
 - Learning Rate : 0.001
-- Momentum : 0.7
+- Momentum : 0.8
+
+![image](https://github.com/user-attachments/assets/40f6cb48-396e-480d-a360-14ee48b0b459)
 
 
 **Comments**
+
+- Better performance than before .
+- It has been trained for 12 epochs .
+- We need less training time .
+- Change the hyperparameters .
+
+**Hyperparameters**
+
+- Learning rate equals 0.005
+- Momentum equals 0.8
