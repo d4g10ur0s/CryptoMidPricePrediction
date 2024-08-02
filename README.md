@@ -135,7 +135,7 @@ model.add(Dense(1, activation='linear'))
 
 - Now always working .
 
-#### 2.1.2 Same model with MAE as loss function
+#### 2.1.2 Same model with MAE as loss function , no Bidirectional Layer
 
 ```
 model = Sequential()
@@ -164,7 +164,79 @@ model.add(Dense(1, activation='linear'))
 - We need less training time .
 - Change the hyperparameters .
 
-**Hyperparameters**
+#### 2.1.2 Same Model with One More Layer
 
-- Learning rate equals 0.005
-- Momentum equals 0.8
+```
+model = Sequential()
+
+model.add(Input(shape=input_shape))
+
+model.add(LSTM(input_shape[0],activation='tanh',return_sequences=True,return_state=False,recurrent_activation='sigmoid',go_backwards=False))
+
+model.add(LSTM(input_shape[0] * input_shape[1],activation='tanh',return_sequences=True,return_state=False,recurrent_activation='sigmoid',go_backwards=False))
+
+model.add(LSTM(input_shape[0] * input_shape[1],activation='tanh',return_sequences=True,return_state=False,recurrent_activation='sigmoid',go_backwards=False))
+
+model.add(LSTM(input_shape[0],activation='tanh',return_sequences=False,return_state=False,recurrent_activation='sigmoid',go_backwards=False))
+
+model.add(Dense(1, activation='linear'))
+```
+
+- Learning Rate : 0.01
+- Momentum : 0.7
+
+![4_0 01_0 7](https://github.com/user-attachments/assets/49cfa105-bc1c-4cb0-91b0-4c1e6eded110)
+
+
+- Learning Rate : 0.01
+- Momentum : 0.8
+
+![4_0 01_0 8](https://github.com/user-attachments/assets/ea15a4d4-6726-47a5-b803-8bdd2ef7a8df)
+
+
+- Learning Rate : 0.01
+- Momentum : 0.9
+
+![4_0 01_0 9](https://github.com/user-attachments/assets/4d52208a-e3bd-4cb9-a507-f00c860fe55f)
+
+
+- Learning Rate : 0.01
+- Momentum : 0.65
+
+![4_0 01_0 65](https://github.com/user-attachments/assets/e34a9164-77be-481f-b568-ed2cc6bb677b)
+
+
+- Learning Rate : 0.01
+- Momentum : 0.95
+
+![4_0 01_0 95](https://github.com/user-attachments/assets/20c84162-ce2c-4e0e-86b1-cf679e744058)
+
+
+- Learning Rate : 0.05
+- Momentum : 0.7
+  
+![4_0 05_0 7](https://github.com/user-attachments/assets/1f771694-5342-481f-8a25-57209c203e08)
+
+
+- Learning Rate : 0.05
+- Momentum : 0.8
+
+![4_0 05_0 8](https://github.com/user-attachments/assets/7d769222-e5ea-41dc-9ebb-00c461e0e6de)
+
+
+- Learning Rate : 0.05
+- Momentum : 0.9
+
+![4_0 05_0 9](https://github.com/user-attachments/assets/0416b194-633a-4c2d-aa18-6c3605a70098)
+
+
+- Learning Rate : 0.05
+- Momentum : 0.65
+
+![4_0 005_0 65](https://github.com/user-attachments/assets/477c7890-fee1-43fe-897f-0c4d7aea68e6)
+
+
+- Learning Rate : 0.05
+- Momentum : 0.95
+
+![4_0 05_0 95](https://github.com/user-attachments/assets/e745f7dc-78ff-4bd6-b7b8-8f6fb2e52dd8)
